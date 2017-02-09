@@ -1,0 +1,10 @@
+FRAMEWORK: NET35, NET40, NET45, NET452, NET46
+NUGET
+  remote: http://api.nuget.org/v3/index.json
+    DocumentFormat.OpenXml (2.5)
+    FAKE (4.46.1)
+    FSharp.Core (4.0.0.1)
+    NetOffice.Core.Net45 (1.7.3)
+    NetOffice.Excel.Net45 (1.7.3)
+      NetOffice.Core.Net45 (>= 1.7.3)
+    NeXL (1.5)

@@ -1,0 +1,8 @@
+framework: net35, net40, net45, net452, net46
+source https://api.nuget.org/v3/index.json
+nuget FAKE 4.46.1
+nuget FSharp.Core
+nuget NeXL
+nuget NetOffice.Core.Net45
+nuget NetOffice.Excel.Net45
+nuget DocumentFormat.OpenXml
