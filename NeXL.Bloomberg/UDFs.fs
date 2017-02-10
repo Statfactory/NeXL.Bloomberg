@@ -26,7 +26,7 @@ module Blp =
             | Some(Some(v)) -> v
             | _ -> XlNil 
 
-    let private messageToXlValue (msg : Message) (field : string) =
+    let private messageToXlValue (field : string) (msg : Message) =
         match seq  
                 {
                     yield try Some(XlNumeric(float(msg.GetElementAsInt32(field)))) with _ -> None
@@ -36,8 +36,8 @@ module Blp =
                     yield try Some(XlNumeric(msg.GetElementAsDatetime(field).ToSystemDateTime().ToOADate())) with _ -> None
                     yield try Some(XlString(msg.GetElementAsString(field))) with _ -> None
                 } |> Seq.tryFind (Option.isSome) with
-            | Some(Some(v)) -> v
-            | _ -> XlNil 
+            | Some(v) -> v
+            | _ -> None
 
     let private refDataToXlTable (fields : string[]) (elems : Element list) : XlTable =
         match elems with
@@ -53,9 +53,14 @@ module Blp =
                                         )
                 new XlTable(cols, data, "", "", false, false, true)
 
-    let private marketDataToXlTable (fields : string[]) (msg : Message) : XlTable =
+    let private marketDataToXlTable (fields : string[]) (msgs : Message list) : XlTable =
         let cols = Array.init (fields.Length) (fun i -> {Name = fields.[i]; IsDateTime = false})
-        let data = Array2D.init 1 cols.Length (fun i j -> messageToXlValue msg fields.[j])
+        let data = Array2D.init 1 cols.Length (fun i j ->
+                                                   let field = fields.[j]
+                                                   match msgs |> Seq.map (messageToXlValue field) |> Seq.tryFind Option.isSome with
+                                                       | Some(Some(v)) -> v
+                                                       | _ -> XlNil
+                                               )
         new XlTable(cols, data, "", "", false, false, true)
 
     let createSession (serverHost : string, serverPort : int) = new BlpSession(serverHost, serverPort)
@@ -72,6 +77,7 @@ module Blp =
             }
 
     let getMarketData (topic : string, fields : string[], session : BlpSession option) =
+        let fields = fields |> Array.distinct
         let session = defaultArg session defaultSession.Value
         let subscription = new ObservableSubscription()
         session.StartSubscription(topic, fields, subscription) 

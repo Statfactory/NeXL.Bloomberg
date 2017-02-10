@@ -12,14 +12,14 @@ open Bloomberglp.Blpapi
 type Agent<'T> = MailboxProcessor<'T>
 
 type ObservableSubscription() as this =
-    let mutable _observer : IObserver<Message> option = None
+    let mutable _observer : IObserver<Message list> option = None
 
     let mutable correlationId : int64 option = None
 
     let mutable session : Session option = None
 
-    interface IObservable<Message> with  
-        member __.Subscribe(observer : IObserver<Message>) : IDisposable = 
+    interface IObservable<Message list> with  
+        member __.Subscribe(observer : IObserver<Message list>) : IDisposable = 
             match _observer with 
                 | None -> _observer <- Some observer
                 | _ -> ()
@@ -41,9 +41,9 @@ type ObservableSubscription() as this =
     member this.Session   
         with set(v) = session <- Some v
 
-    member this.SendEvent(el : Message) =
+    member this.SendEvent(msgs : Message list) =
         match _observer with
-            | Some(observer) -> observer.OnNext(el)
+            | Some(observer) -> observer.OnNext(msgs)
             | None -> ()
 
     member this.SendError(exn) =
@@ -131,7 +131,6 @@ type BlpSession(serverHost : string, serverPort : int) =
                                                 match msgs |> Seq.tryFind (fun msg -> msg.MessageType.Equals("ServiceOpened")) with
                                                     | Some(msg) when msg.CorrelationID.Value = refDataSvcCorrId -> 
                                                         let service = s.GetService("//blp/refdata")
-                                                        statusEvent.Trigger({Status = "Reference data service opened"})
                                                         return! msgLoop({state with RefDataService = Some service}) 
                                                     | _ -> return! msgLoop(state) 
 
@@ -172,9 +171,11 @@ type BlpSession(serverHost : string, serverPort : int) =
                                                 let msgs = ev.GetMessages()
                                                 msgs |> Seq.filter (fun msg -> msg.MessageType.Equals("MarketDataEvents"))
                                                      |> Seq.map (fun msg -> msg.CorrelationID.Value, msg)
-                                                     |> Seq.iter (fun (corrId, elem) ->
+                                                     |> Seq.groupBy fst
+                                                     |> Seq.iter (fun (corrId, msgs) ->
                                                                       if state.Subscriptions.ContainsKey(corrId) then
-                                                                          state.Subscriptions.[corrId].SendEvent(elem)
+                                                                          let msgs = msgs |> Seq.map snd |> Seq.toList
+                                                                          state.Subscriptions.[corrId].SendEvent(msgs)
                                                                   )
                                                 return! msgLoop(state)
 
@@ -196,7 +197,7 @@ type BlpSession(serverHost : string, serverPort : int) =
 
                                                     return! msgLoop({state with LastCorrId = corrId}) 
                                                 with ex ->
-                                                    statusEvent.Trigger({Status = ex.StackTrace})
+                                                    statusEvent.Trigger({Status = ex.Message})
                                                     return! msgLoop(state)
 
 
@@ -206,7 +207,6 @@ type BlpSession(serverHost : string, serverPort : int) =
                                                 return! msgLoop(state) 
 
                                     | SubscriptionStart(topic, fields, obsSubscription) ->
-                                        statusEvent.Trigger({Status = "Subscription starting"})
                                         match state.Session with   
                                             | Some(session) ->
                                                 let corrId = state.LastCorrId + 1L
