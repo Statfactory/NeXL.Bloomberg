@@ -157,7 +157,7 @@
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.6')">
       <ItemGroup>
         <Reference Include="Bloomberglp.Blpapi">
-          <HintPath>..\bin\BloombergEmulator\Bloomberglp.Blpapi.dll</HintPath>
+          <HintPath>..\bin\Bloomberglp.Blpapi.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>

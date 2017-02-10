@@ -76,7 +76,7 @@ module Blp =
                  | None -> return new XlTable(XlString("Timeout or bad request"))
             }
 
-    let getMarketData (topic : string, fields : string[], session : BlpSession option) =
+    let getMarketData (topic : string, fields : string[], session : BlpSession option) : IObservable<XlTable> =
         let fields = fields |> Array.distinct
         let session = defaultArg session defaultSession.Value
         let subscription = new ObservableSubscription()
