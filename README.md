@@ -6,6 +6,7 @@ Excel Connector for Bloomberg Data API
 License: Creative Commons 4.0 (https://creativecommons.org/licenses/by-nd/4.0/legalcode)
 
 Contact: nexl at statfactory.co.uk
+Follow on Twitter: @nexl_connector
 
 # How to build and use
 
