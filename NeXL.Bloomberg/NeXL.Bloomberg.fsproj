@@ -54,10 +54,10 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="NeXL32bit_1_5_0.xll">
+    <Content Include="NeXL32bit_1_6_0.xll">
       <Paket>True</Paket>
     </Content>
-    <Content Include="NeXL64bit_1_5_0.xll">
+    <Content Include="NeXL64bit_1_6_0.xll">
       <Paket>True</Paket>
     </Content>
     <Compile Include="AssemblyInfo.fs" />
